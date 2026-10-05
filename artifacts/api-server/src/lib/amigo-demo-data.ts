@@ -1,0 +1,272 @@
+const asset = (name: string) => `/images/${name}`;
+
+export const demoEvents = [
+  {
+    id: "yjhd-screening",
+    title: "YJHD Fan Screening",
+    category: "Movies",
+    startsAt: "2026-10-10T19:30:00.000Z",
+    location: "PVR Una",
+    imageUrl: asset("cinema-night.jpg"),
+    description:
+      "A big-screen rewatch, a little nostalgia, and new people to quote every scene with.",
+    attendeeCount: 86,
+    lookingForCompany: 12,
+    isFeatured: true,
+  },
+  {
+    id: "coffee-crawl",
+    title: "Sunday coffee crawl",
+    category: "Food",
+    startsAt: "2026-10-11T09:30:00.000Z",
+    location: "Old Una",
+    imageUrl: asset("cafe-meetup.jpg"),
+    description: "A slow morning, three good cups, and easy conversation.",
+    attendeeCount: 18,
+    lookingForCompany: 7,
+    isFeatured: false,
+  },
+  {
+    id: "indie-night",
+    title: "Indie on the rooftop",
+    category: "Music",
+    startsAt: "2026-10-16T18:30:00.000Z",
+    location: "The Terrace, Una",
+    imageUrl: asset("city-photowalk.jpg"),
+    description: "Local sets, open air, and a few new songs for the playlist.",
+    attendeeCount: 42,
+    lookingForCompany: 15,
+    isFeatured: false,
+  },
+  {
+    id: "weekend-cricket",
+    title: "Weekend cricket, no pressure",
+    category: "Sports",
+    startsAt: "2026-10-11T06:00:00.000Z",
+    location: "Mini Stadium, Una",
+    imageUrl: asset("weekend-cricket.jpg"),
+    description: "A casual game for all skill levels. Bring a bat if you have one.",
+    attendeeCount: 16,
+    lookingForCompany: 5,
+    isFeatured: false,
+  },
+  {
+    id: "una-photowalk",
+    title: "Golden hour photowalk",
+    category: "Art",
+    startsAt: "2026-10-17T16:30:00.000Z",
+    location: "Una market",
+    imageUrl: asset("city-photowalk.jpg"),
+    description: "Explore the old lanes and catch the light with a friendly crew.",
+    attendeeCount: 21,
+    lookingForCompany: 9,
+    isFeatured: false,
+  },
+];
+
+export const demoPeople = [
+  {
+    id: "aarav",
+    name: "Aarav",
+    avatarUrl: asset("aarav-portrait.jpg"),
+    location: "Una",
+    distance: "2.4 km away",
+    bio: "Always down for a spontaneous plan.",
+    match: 94,
+    interests: ["Movies", "Coffee", "Design"],
+  },
+  {
+    id: "mira",
+    name: "Mira",
+    avatarUrl: asset("mira-portrait.jpg"),
+    location: "Una",
+    distance: "3.1 km away",
+    bio: "Collecting cafe corners and good stories.",
+    match: 91,
+    interests: ["Movies", "Music", "Books"],
+  },
+  {
+    id: "dev",
+    name: "Dev",
+    avatarUrl: asset("aarav-portrait.jpg"),
+    location: "Una",
+    distance: "4.8 km away",
+    bio: "Cricket first, chai immediately after.",
+    match: 88,
+    interests: ["Cricket", "Food", "Travel"],
+  },
+  {
+    id: "sana",
+    name: "Sana",
+    avatarUrl: asset("mira-portrait.jpg"),
+    location: "Una",
+    distance: "5.2 km away",
+    bio: "Here for live music and last-minute plans.",
+    match: 86,
+    interests: ["Music", "Photography", "Coffee"],
+  },
+];
+
+export const demoClans = [
+  {
+    id: "una-movie-circle",
+    name: "Una Movie Circle",
+    description: "People who love movies, conversations and spontaneous plans.",
+    category: "Movies",
+    coverUrl: asset("cinema-night.jpg"),
+    membersCount: 248,
+    isPrivate: false,
+    isJoined: true,
+  },
+  {
+    id: "weekend-cricket-crew",
+    name: "Weekend Cricket Crew",
+    description: "Friendly games, fresh air, and post-match chai.",
+    category: "Sports",
+    coverUrl: asset("weekend-cricket.jpg"),
+    membersCount: 126,
+    isPrivate: false,
+    isJoined: false,
+  },
+  {
+    id: "coffee-conversations",
+    name: "Coffee & Conversations",
+    description: "Good coffee and even better conversations around Una.",
+    category: "Food",
+    coverUrl: asset("cafe-meetup.jpg"),
+    membersCount: 93,
+    isPrivate: false,
+    isJoined: false,
+  },
+  {
+    id: "una-photowalks",
+    name: "Una Photowalks",
+    description: "A curious little crew exploring the city one frame at a time.",
+    category: "Art",
+    coverUrl: asset("city-photowalk.jpg"),
+    membersCount: 61,
+    isPrivate: false,
+    isJoined: false,
+  },
+];
+
+export const demoPlans = [
+  {
+    id: "saturday-screening-plan",
+    title: "YJHD screening + chai?",
+    description: "A few of us are heading to the fan screening. Come along.",
+    startsAt: "2026-10-10T19:00:00.000Z",
+    location: "PVR Una",
+    peopleCount: 4,
+    maxPeople: 8,
+    isJoined: false,
+    interests: ["Movies", "Coffee"],
+  },
+  {
+    id: "cricket-plan",
+    title: "Weekend Cricket",
+    description: "Looking for a few people for a casual game.",
+    startsAt: "2026-10-11T06:00:00.000Z",
+    location: "Mini Stadium, Una",
+    peopleCount: 5,
+    maxPeople: 12,
+    isJoined: false,
+    interests: ["Cricket", "Sports"],
+  },
+];
+
+export const demoNotifications = [
+  {
+    id: "notification-invite",
+    category: "people",
+    message: "Aarav accepted your invite.",
+    createdAt: "2026-10-04T18:15:00.000Z",
+    isRead: false,
+    personId: "aarav",
+    eventId: null,
+  },
+  {
+    id: "notification-screening",
+    category: "plans",
+    message: "12 people are looking for company at YJHD Fan Screening.",
+    createdAt: "2026-10-04T12:00:00.000Z",
+    isRead: false,
+    personId: null,
+    eventId: "yjhd-screening",
+  },
+  {
+    id: "notification-clan",
+    category: "clans",
+    message: "Una Movie Circle has a new event this weekend.",
+    createdAt: "2026-10-03T09:00:00.000Z",
+    isRead: true,
+    personId: null,
+    eventId: "yjhd-screening",
+  },
+];
+
+export const demoProfile = {
+  id: "tarsem",
+  name: "Tarsem",
+  avatarUrl: "",
+  location: "Una",
+  bio: "Always down for movies, chai and spontaneous plans.",
+  interests: ["Movies", "Cricket", "Coffee", "Travel", "Music"],
+  upcomingPlans: [demoPlans[0]],
+  clans: [demoClans[0], demoClans[2]],
+  buddies: [demoPeople[0], demoPeople[1]],
+};
+
+export const demoSettings = {
+  discoveryRadius: 25,
+  profileVisibility: "everyone",
+  eventNotifications: true,
+  messageNotifications: true,
+  showDistance: true,
+};
+
+export const demoConversations = [
+  {
+    person: demoPeople[0],
+    lastMessage: "See you at the screening!",
+    updatedAt: "2026-10-04T17:45:00.000Z",
+    unreadCount: 1,
+  },
+  {
+    person: demoPeople[1],
+    lastMessage: "That cafe looks so good",
+    updatedAt: "2026-10-03T11:20:00.000Z",
+    unreadCount: 0,
+  },
+];
+
+export const demoMessages = [
+  {
+    id: "message-aarav-1",
+    personId: "aarav",
+    body: "Hey! Are you going to the YJHD screening?",
+    sentAt: "2026-10-04T17:35:00.000Z",
+    isMine: false,
+  },
+  {
+    id: "message-aarav-2",
+    personId: "aarav",
+    body: "Yep, just booked. Want to meet there?",
+    sentAt: "2026-10-04T17:40:00.000Z",
+    isMine: true,
+  },
+  {
+    id: "message-aarav-3",
+    personId: "aarav",
+    body: "See you at the screening!",
+    sentAt: "2026-10-04T17:45:00.000Z",
+    isMine: false,
+  },
+  {
+    id: "message-mira-1",
+    personId: "mira",
+    body: "That cafe looks so good",
+    sentAt: "2026-10-03T11:20:00.000Z",
+    isMine: false,
+  },
+];

@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API for the Amigo social discovery app
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: discovery
+    description: Events, people, communities, and search
+  - name: social
+    description: Connections, plans, and conversations
+  - name: account
+    description: Profiles, settings, and onboarding
 paths:
   /healthz:
     get:
@@ -24,6 +30,398 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /home-feed:
+    get:
+      operationId: getHomeFeed
+      tags: [discovery]
+      summary: Get the personalized home feed
+      responses:
+        "200":
+          description: Home feed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomeFeed"
+  /events:
+    get:
+      operationId: listEvents
+      tags: [discovery]
+      summary: Find events and activities
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: time
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Event" }
+  /events/{eventId}:
+    get:
+      operationId: getEvent
+      tags: [discovery]
+      summary: Get an event and compatible attendees
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EventDetail" }
+        "404":
+          description: Event not found
+  /people:
+    get:
+      operationId: listPeople
+      tags: [discovery]
+      summary: Discover people
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: People
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Person" }
+  /people/{personId}:
+    get:
+      operationId: getPerson
+      tags: [discovery]
+      summary: View a person's social profile
+      parameters:
+        - name: personId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Person details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PersonDetail" }
+        "404":
+          description: Person not found
+  /buddies:
+    get:
+      operationId: getBuddies
+      tags: [social]
+      summary: Get connections, requests, suggestions, and upcoming plans
+      responses:
+        "200":
+          description: Buddy overview
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BuddiesFeed" }
+  /connections:
+    post:
+      operationId: createConnection
+      tags: [social]
+      summary: Send a connection or activity invite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConnectionInput" }
+      responses:
+        "201":
+          description: Connection created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Connection" }
+  /clans:
+    get:
+      operationId: listClans
+      tags: [discovery]
+      summary: Discover communities
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Communities
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Clan" }
+    post:
+      operationId: createClan
+      tags: [social]
+      summary: Create a community
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClanInput" }
+      responses:
+        "201":
+          description: Community created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Clan" }
+  /clans/{clanId}:
+    get:
+      operationId: getClan
+      tags: [discovery]
+      summary: View community details
+      parameters:
+        - name: clanId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Community details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClanDetail" }
+        "404":
+          description: Community not found
+  /clans/{clanId}/join:
+    post:
+      operationId: joinClan
+      tags: [social]
+      summary: Join a community
+      parameters:
+        - name: clanId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Membership updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JoinClanResult" }
+  /plans:
+    get:
+      operationId: listPlans
+      tags: [social]
+      summary: Discover open plans
+      responses:
+        "200":
+          description: Plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Plan" }
+    post:
+      operationId: createPlan
+      tags: [social]
+      summary: Create a plan with other people
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlanInput" }
+      responses:
+        "201":
+          description: Plan created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Plan" }
+  /plans/{planId}/join:
+    post:
+      operationId: joinPlan
+      tags: [social]
+      summary: Join a plan
+      parameters:
+        - name: planId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Plan participation updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlanParticipation" }
+  /messages:
+    get:
+      operationId: listConversations
+      tags: [social]
+      summary: List conversations
+      responses:
+        "200":
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ConversationSummary" }
+    post:
+      operationId: sendMessage
+      tags: [social]
+      summary: Send a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MessageInput" }
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+  /messages/{personId}:
+    get:
+      operationId: getConversation
+      tags: [social]
+      summary: Get a conversation with a person
+      parameters:
+        - name: personId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Conversation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Conversation" }
+        "404":
+          description: Conversation not found
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [social]
+      summary: Get relevant updates
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Notification" }
+  /notifications/{notificationId}:
+    patch:
+      operationId: updateNotification
+      tags: [social]
+      summary: Mark a notification as read
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotificationUpdate" }
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Notification" }
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [account]
+      summary: Get the current social profile
+      responses:
+        "200":
+          description: Current profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+    patch:
+      operationId: updateProfile
+      tags: [account]
+      summary: Update the current profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfileUpdate" }
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profile" }
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [account]
+      summary: Get discovery and privacy settings
+      responses:
+        "200":
+          description: User settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Settings" }
+    patch:
+      operationId: updateSettings
+      tags: [account]
+      summary: Update settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SettingsUpdate" }
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Settings" }
+  /search:
+    get:
+      operationId: searchAmigo
+      tags: [discovery]
+      summary: Search events, people, and communities
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchResults" }
+  /onboarding:
+    post:
+      operationId: saveOnboarding
+      tags: [account]
+      summary: Save onboarding preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OnboardingInput" }
+      responses:
+        "200":
+          description: Onboarding preferences saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OnboardingResult" }
 components:
   schemas:
     HealthStatus:
@@ -33,4 +431,298 @@ components:
           type: string
       required:
         - status
+    Event:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        category: { type: string }
+        startsAt: { type: string, format: date-time }
+        location: { type: string }
+        imageUrl: { type: string }
+        description: { type: string }
+        attendeeCount: { type: integer }
+        lookingForCompany: { type: integer }
+        isFeatured: { type: boolean }
+      required: [id, title, category, startsAt, location, imageUrl, description, attendeeCount, lookingForCompany, isFeatured]
+    Person:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        avatarUrl: { type: string }
+        location: { type: string }
+        distance: { type: string }
+        bio: { type: string }
+        match: { type: integer }
+        interests:
+          type: array
+          items: { type: string }
+      required: [id, name, avatarUrl, location, distance, bio, match, interests]
+    Clan:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        category: { type: string }
+        coverUrl: { type: string }
+        membersCount: { type: integer }
+        isPrivate: { type: boolean }
+        isJoined: { type: boolean }
+      required: [id, name, description, category, coverUrl, membersCount, isPrivate, isJoined]
+    Plan:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        startsAt: { type: string, format: date-time }
+        location: { type: string }
+        peopleCount: { type: integer }
+        maxPeople: { type: integer }
+        isJoined: { type: boolean }
+        interests:
+          type: array
+          items: { type: string }
+      required: [id, title, description, startsAt, location, peopleCount, maxPeople, isJoined, interests]
+    Message:
+      type: object
+      properties:
+        id: { type: string }
+        personId: { type: string }
+        body: { type: string }
+        sentAt: { type: string, format: date-time }
+        isMine: { type: boolean }
+      required: [id, personId, body, sentAt, isMine]
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        category: { type: string }
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+        isRead: { type: boolean }
+        personId: { type: ["string", "null"] }
+        eventId: { type: ["string", "null"] }
+      required: [id, category, message, createdAt, isRead, personId, eventId]
+    HomeFeed:
+      type: object
+      properties:
+        featuredEvent: { $ref: "#/components/schemas/Event" }
+        events:
+          type: array
+          items: { $ref: "#/components/schemas/Event" }
+        people:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+        clans:
+          type: array
+          items: { $ref: "#/components/schemas/Clan" }
+      required: [featuredEvent, events, people, clans]
+    EventDetail:
+      type: object
+      properties:
+        event: { $ref: "#/components/schemas/Event" }
+        interestedPeople:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+      required: [event, interestedPeople]
+    PersonDetail:
+      type: object
+      properties:
+        person: { $ref: "#/components/schemas/Person" }
+        sharedInterests:
+          type: array
+          items: { type: string }
+        sharedEvent: { type: ["string", "null"] }
+        upcomingPlans:
+          type: array
+          items: { $ref: "#/components/schemas/Plan" }
+        clans:
+          type: array
+          items: { $ref: "#/components/schemas/Clan" }
+      required: [person, sharedInterests, sharedEvent, upcomingPlans, clans]
+    BuddiesFeed:
+      type: object
+      properties:
+        connections:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+        requests:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+        suggestions:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+        upcomingPlans:
+          type: array
+          items: { $ref: "#/components/schemas/Plan" }
+      required: [connections, requests, suggestions, upcomingPlans]
+    ClanDetail:
+      type: object
+      properties:
+        clan: { $ref: "#/components/schemas/Clan" }
+        events:
+          type: array
+          items: { $ref: "#/components/schemas/Event" }
+        members:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+      required: [clan, events, members]
+    JoinClanResult:
+      type: object
+      properties:
+        clanId: { type: string }
+        joined: { type: boolean }
+        membersCount: { type: integer }
+      required: [clanId, joined, membersCount]
+    PlanParticipation:
+      type: object
+      properties:
+        planId: { type: string }
+        status: { type: string }
+        peopleCount: { type: integer }
+      required: [planId, status, peopleCount]
+    ConversationSummary:
+      type: object
+      properties:
+        person: { $ref: "#/components/schemas/Person" }
+        lastMessage: { type: string }
+        updatedAt: { type: string, format: date-time }
+        unreadCount: { type: integer }
+      required: [person, lastMessage, updatedAt, unreadCount]
+    Conversation:
+      type: object
+      properties:
+        person: { $ref: "#/components/schemas/Person" }
+        messages:
+          type: array
+          items: { $ref: "#/components/schemas/Message" }
+      required: [person, messages]
+    Profile:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        avatarUrl: { type: string }
+        location: { type: string }
+        bio: { type: string }
+        interests:
+          type: array
+          items: { type: string }
+        upcomingPlans:
+          type: array
+          items: { $ref: "#/components/schemas/Plan" }
+        clans:
+          type: array
+          items: { $ref: "#/components/schemas/Clan" }
+        buddies:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+      required: [id, name, avatarUrl, location, bio, interests, upcomingPlans, clans, buddies]
+    Settings:
+      type: object
+      properties:
+        discoveryRadius: { type: integer }
+        profileVisibility: { type: string }
+        eventNotifications: { type: boolean }
+        messageNotifications: { type: boolean }
+        showDistance: { type: boolean }
+      required: [discoveryRadius, profileVisibility, eventNotifications, messageNotifications, showDistance]
+    SearchResults:
+      type: object
+      properties:
+        events:
+          type: array
+          items: { $ref: "#/components/schemas/Event" }
+        people:
+          type: array
+          items: { $ref: "#/components/schemas/Person" }
+        clans:
+          type: array
+          items: { $ref: "#/components/schemas/Clan" }
+      required: [events, people, clans]
+    Connection:
+      type: object
+      properties:
+        id: { type: string }
+        personId: { type: string }
+        status: { type: string }
+      required: [id, personId, status]
+    ConnectionInput:
+      type: object
+      properties:
+        personId: { type: string, minLength: 1 }
+        eventId: { type: ["string", "null"] }
+        message: { type: string }
+      required: [personId, message]
+    ClanInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 2 }
+        description: { type: string, minLength: 8 }
+        category: { type: string }
+        coverUrl: { type: string }
+        isPrivate: { type: boolean }
+      required: [name, description, category, coverUrl, isPrivate]
+    PlanInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 2 }
+        description: { type: string }
+        startsAt: { type: string, format: date-time }
+        location: { type: string, minLength: 2 }
+        maxPeople: { type: integer, minimum: 2, maximum: 50 }
+        interests:
+          type: array
+          items: { type: string }
+      required: [title, description, startsAt, location, maxPeople, interests]
+    MessageInput:
+      type: object
+      properties:
+        personId: { type: string, minLength: 1 }
+        body: { type: string, minLength: 1, maxLength: 2000 }
+      required: [personId, body]
+    NotificationUpdate:
+      type: object
+      properties:
+        isRead: { type: boolean }
+      required: [isRead]
+    ProfileUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        location: { type: string }
+        bio: { type: string, maxLength: 240 }
+        interests:
+          type: array
+          items: { type: string }
+      required: [name, location, bio, interests]
+    SettingsUpdate:
+      type: object
+      properties:
+        discoveryRadius: { type: integer, minimum: 1, maximum: 100 }
+        profileVisibility: { type: string, enum: [everyone, buddies, hidden] }
+        eventNotifications: { type: boolean }
+        messageNotifications: { type: boolean }
+        showDistance: { type: boolean }
+    OnboardingInput:
+      type: object
+      properties:
+        goals:
+          type: array
+          items: { type: string }
+        interests:
+          type: array
+          items: { type: string }
+        planTypes:
+          type: array
+          items: { type: string }
+      required: [goals, interests, planTypes]
+    OnboardingResult:
+      type: object
+      properties:
+        saved: { type: boolean }
+      required: [saved]
 

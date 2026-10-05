@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AMIGO"
+description = "A social discovery app that helps people find nearby events, meet friends who share their interests, join communities, and make plans together."
+version = "1.0.0"
+id = "artifacts/amigo"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22205
+
+[services.development]
+run = "pnpm --filter @workspace/amigo run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/amigo", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/amigo/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22205"
+BASE_PATH = "/"
