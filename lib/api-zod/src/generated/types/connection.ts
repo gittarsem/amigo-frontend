@@ -5,9 +5,10 @@
  * API for the Amigo social discovery app
  * OpenAPI spec version: 0.1.0
  */
+import type { ConnectionStatus } from './connectionStatus';
 
 export interface Connection {
   id: string;
   personId: string;
-  status: string;
+  status: ConnectionStatus;
 }

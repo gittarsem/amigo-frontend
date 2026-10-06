@@ -14,5 +14,6 @@ export interface Plan {
   location: string;
   peopleCount: number;
   maxPeople: number;
+  isJoined: boolean;
   interests: string[];
 }

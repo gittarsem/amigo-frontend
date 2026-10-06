@@ -26,6 +26,7 @@ import type {
   ClanInput,
   Connection,
   ConnectionInput,
+  ConnectionUpdate,
   Conversation,
   ConversationSummary,
   Event,
@@ -722,6 +723,95 @@ export const useCreateConnection = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateConnectionMutationOptions(options));
+    }
+
+export const getRespondToConnectionUrl = (personId: string,) => {
+
+
+
+
+  return `/api/connections/${personId}/respond`
+}
+
+/**
+ * @summary Accept or dismiss an incoming connection request
+ */
+export const respondToConnection = async (personId: string,
+    connectionUpdate: ConnectionUpdate, options?: Parameters<typeof customFetch>[1]): Promise<Connection> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Connection>(getRespondToConnectionUrl(personId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(connectionUpdate)
+  }
+);}
+
+
+
+
+
+export const getRespondToConnectionMutationKey = () => ['respondToConnection'] as const;
+
+export const getRespondToConnectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondToConnection>>, TError,RespondToConnectionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof respondToConnection>>, TError,RespondToConnectionMutationVariables, TContext> => {
+
+const mutationKey = getRespondToConnectionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof respondToConnection>>, RespondToConnectionMutationVariables> = (props) => {
+          const {personId,data} = props ?? {};
+
+          return  respondToConnection(personId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RespondToConnectionMutationResult = NonNullable<Awaited<ReturnType<typeof respondToConnection>>>
+    export type RespondToConnectionMutationBody = BodyType<ConnectionUpdate>
+    export type RespondToConnectionMutationError = ErrorType<unknown>
+    export type RespondToConnectionMutationVariables = {personId: string;data: BodyType<ConnectionUpdate>}
+
+    /**
+ * @summary Accept or dismiss an incoming connection request
+ */
+export const useRespondToConnection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondToConnection>>, TError,RespondToConnectionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof respondToConnection>>,
+        TError,
+        RespondToConnectionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRespondToConnectionMutationOptions(options));
     }
 
 export const getListClansUrl = (params?: ListClansParams,) => {

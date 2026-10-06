@@ -35,6 +35,9 @@ import {
   ListPlansResponse,
   SaveOnboardingResponse,
   SaveOnboardingBody,
+  RespondToConnectionBody,
+  RespondToConnectionParams,
+  RespondToConnectionResponse,
   SearchAmigoQueryParams,
   SearchAmigoResponse,
   SendMessageBody,
@@ -115,10 +118,13 @@ async function allClans() {
   }));
 }
 
-async function allPlans() {
-  const [created, participants] = await Promise.all([
+async function allPlans(userId?: string) {
+  const [created, participants, memberships] = await Promise.all([
     getAllRecords<AmigoData>("plan"),
     getAllRecords<{ planId: string }>("plan-participation"),
+    userId
+      ? getRecords<{ planId: string }>("plan-participation", userId)
+      : Promise.resolve([]),
   ]);
   const joinedCount = new Map<string, number>();
   for (const participation of participants) {
@@ -127,12 +133,16 @@ async function allPlans() {
       (joinedCount.get(participation.planId) ?? 0) + 1,
     );
   }
+  const joinedIds = new Set(memberships.map((membership) => membership.planId));
   return [
     ...demoPlans,
-    ...created.map((item) => CreatePlanResponse.parse(item)),
+    ...created.map((item) =>
+      CreatePlanResponse.parse({ ...item, isJoined: item.isJoined === true }),
+    ),
   ].map((plan) => ({
     ...plan,
     peopleCount: plan.peopleCount + (joinedCount.get(plan.id) ?? 0),
+    isJoined: joinedIds.has(plan.id),
   }));
 }
 
@@ -236,14 +246,24 @@ router.get("/people/:personId", (req, res): void => {
 
 router.get("/buddies", async (req, res): Promise<void> => {
   const userId = getAuth(req).userId;
-  const requested = userId
-    ? await getRecords<{ personId: string; status: string }>(
-        "connection",
-        userId,
-      )
-    : [];
+  const [requested, joinedPlans] = await Promise.all([
+    userId
+      ? getRecords<{ personId: string; status: string }>("connection", userId)
+      : Promise.resolve([]),
+    userId
+      ? allPlans(userId).then((plans) => plans.filter((plan) => plan.isJoined))
+      : Promise.resolve([]),
+  ]);
   const connectedIds = new Set(
     requested.filter((item) => item.status === "connected").map((item) => item.personId),
+  );
+  const requestedIds = new Set(
+    requested.filter((item) => item.status === "requested").map((item) => item.personId),
+  );
+  const handledRequestIds = new Set(
+    requested
+      .filter((item) => item.status === "connected" || item.status === "declined")
+      .map((item) => item.personId),
   );
   const connections = userId
     ? demoPeople.filter((person) => connectedIds.has(person.id))
@@ -251,11 +271,16 @@ router.get("/buddies", async (req, res): Promise<void> => {
   res.json(
     GetBuddiesResponse.parse({
       connections,
-      requests: demoPeople.slice(3, 4),
+      requests: demoPeople
+        .slice(3, 4)
+        .filter((person) => !handledRequestIds.has(person.id)),
       suggestions: demoPeople.filter(
-        (person) => !connectedIds.has(person.id) && person.id !== "sana",
+        (person) =>
+          !connectedIds.has(person.id) &&
+          !requestedIds.has(person.id) &&
+          person.id !== "sana",
       ),
-      upcomingPlans: demoPlans.slice(0, 1),
+      upcomingPlans: joinedPlans.length ? joinedPlans : demoPlans.slice(0, 1),
     }),
   );
 });
@@ -283,6 +308,67 @@ router.post("/connections", async (req, res): Promise<void> => {
   res.status(201).json(CreateConnectionResponse.parse(connection));
 });
 
+router.patch(
+  "/connections/:personId/respond",
+  async (req, res): Promise<void> => {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const params = RespondToConnectionParams.safeParse({
+      personId: getParam(req, "personId"),
+    });
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    const parsed = RespondToConnectionBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+    const isIncomingRequest = demoPeople
+      .slice(3, 4)
+      .some((person) => person.id === params.data.personId);
+    if (!isIncomingRequest) {
+      res.status(404).json({ error: "Connection request not found." });
+      return;
+    }
+
+    const id = `connection:${userId}:${params.data.personId}`;
+    const existing = await getRecord<{ personId: string; status: string }>(
+      id,
+      userId,
+    );
+    const status =
+      parsed.data.action === "accept" ? "connected" : "declined";
+    if (
+      existing?.status === "connected" ||
+      existing?.status === "declined"
+    ) {
+      if (existing.status !== status) {
+        res.status(409).json({ error: "This request was already handled." });
+        return;
+      }
+      res.json(
+        RespondToConnectionResponse.parse({
+          id,
+          personId: params.data.personId,
+          status: existing.status,
+        }),
+      );
+      return;
+    }
+
+    const connection = {
+      id,
+      personId: params.data.personId,
+      status,
+    };
+    await saveRecord(id, "connection", userId, connection);
+    res.json(RespondToConnectionResponse.parse(connection));
+  },
+);
+
 router.get("/clans", async (req, res): Promise<void> => {
   const parsed = ListClansQueryParams.safeParse(req.query);
   if (!parsed.success) {
@@ -308,6 +394,7 @@ router.get("/clans", async (req, res): Promise<void> => {
         parsed.data.category.toLowerCase() === "all" ||
         clan.category.toLowerCase() === parsed.data.category.toLowerCase(),
     )
+    .filter((clan) => !clan.isPrivate || joinedIds.has(clan.id))
     .map((clan) => ({
       ...clan,
       isJoined: clan.isJoined || joinedIds.has(clan.id),
@@ -362,6 +449,10 @@ router.get("/clans/:clanId", async (req, res): Promise<void> => {
         userId,
       )
     : undefined;
+  if (clan.isPrivate && !membership) {
+    res.status(404).json({ error: "Community not found." });
+    return;
+  }
   res.json(
     GetClanResponse.parse({
       clan: { ...clan, isJoined: clan.isJoined || !!membership },
@@ -402,8 +493,8 @@ router.post("/clans/:clanId/join", async (req, res): Promise<void> => {
   );
 });
 
-router.get("/plans", async (_req, res): Promise<void> => {
-  const plans = await allPlans();
+router.get("/plans", async (req, res): Promise<void> => {
+  const plans = await allPlans(getAuth(req).userId ?? undefined);
   res.json(ListPlansResponse.parse(plans));
 });
 
@@ -420,8 +511,21 @@ router.post("/plans", async (req, res): Promise<void> => {
     id: `plan-${randomUUID()}`,
     ...parsed.data,
     peopleCount: 1,
+    isJoined: true,
   };
-  await saveRecord(plan.id, "plan", userId, plan);
+  await Promise.all([
+    saveRecord(plan.id, "plan", userId, {
+      ...plan,
+      peopleCount: 0,
+      isJoined: false,
+    }),
+    saveRecord(
+      `plan-participation:${userId}:${plan.id}`,
+      "plan-participation",
+      userId,
+      { planId: plan.id },
+    ),
+  ]);
   res.status(201).json(CreatePlanResponse.parse(plan));
 });
 
@@ -434,7 +538,7 @@ router.post("/plans/:planId/join", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const plans = await allPlans();
+  const plans = await allPlans(userId);
   const plan = plans.find((item) => item.id === params.data.planId);
   if (!plan) {
     res.status(404).json({ error: "Plan not found." });
@@ -587,13 +691,20 @@ router.patch("/notifications/:notificationId", async (req, res): Promise<void> =
 
 router.get("/profile", async (req, res): Promise<void> => {
   const userId = getAuth(req).userId;
-  const saved = userId
-    ? await getRecord<AmigoData>(`profile:${userId}`, userId)
-    : undefined;
+  const [saved, joinedPlans] = await Promise.all([
+    userId ? getRecord<AmigoData>(`profile:${userId}`, userId) : undefined,
+    userId
+      ? allPlans(userId).then((plans) => plans.filter((plan) => plan.isJoined))
+      : Promise.resolve([]),
+  ]);
+  const upcomingPlans = joinedPlans.length
+    ? joinedPlans
+    : (saved?.upcomingPlans as typeof demoPlans | undefined) ??
+      demoProfile.upcomingPlans;
   const profile = saved
-    ? { ...demoProfile, ...saved }
+    ? { ...demoProfile, ...saved, upcomingPlans }
     : userId
-      ? { ...demoProfile, id: userId }
+      ? { ...demoProfile, id: userId, upcomingPlans }
       : demoProfile;
   res.json(GetProfileResponse.parse(profile));
 });
@@ -646,7 +757,14 @@ router.get("/search", async (req, res): Promise<void> => {
     return;
   }
   const q = parsed.data.q;
-  const clans = await allClans();
+  const userId = getAuth(req).userId;
+  const [clans, memberships] = await Promise.all([
+    allClans(),
+    userId
+      ? getRecords<{ clanId: string }>("clan-membership", userId)
+      : Promise.resolve([]),
+  ]);
+  const joinedClanIds = new Set(memberships.map((item) => item.clanId));
   const events = demoEvents.filter((event) =>
     matchesQuery([event.title, event.category, event.location], q),
   );
@@ -654,6 +772,7 @@ router.get("/search", async (req, res): Promise<void> => {
     matchesQuery([person.name, person.bio, ...person.interests], q),
   );
   const matchedClans = clans.filter((clan) =>
+    (!clan.isPrivate || joinedClanIds.has(clan.id)) &&
     matchesQuery([clan.name, clan.category, clan.description], q),
   );
   res.json(

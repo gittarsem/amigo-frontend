@@ -52,6 +52,7 @@ export interface Plan {
   location: string;
   peopleCount: number;
   maxPeople: number;
+  isJoined: boolean;
   interests: string[];
 }
 
@@ -159,10 +160,19 @@ export interface SearchResults {
   clans: Clan[];
 }
 
+export type ConnectionStatus = typeof ConnectionStatus[keyof typeof ConnectionStatus];
+
+
+export const ConnectionStatus = {
+  requested: 'requested',
+  connected: 'connected',
+  declined: 'declined',
+} as const;
+
 export interface Connection {
   id: string;
   personId: string;
-  status: string;
+  status: ConnectionStatus;
 }
 
 export interface ConnectionInput {
@@ -171,6 +181,18 @@ export interface ConnectionInput {
   /** @nullable */
   eventId?: string | null;
   message: string;
+}
+
+export type ConnectionUpdateAction = typeof ConnectionUpdateAction[keyof typeof ConnectionUpdateAction];
+
+
+export const ConnectionUpdateAction = {
+  accept: 'accept',
+  ignore: 'ignore',
+} as const;
+
+export interface ConnectionUpdate {
+  action: ConnectionUpdateAction;
 }
 
 export interface ClanInput {

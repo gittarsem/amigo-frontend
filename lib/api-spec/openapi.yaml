@@ -145,6 +145,27 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Connection" }
+  /connections/{personId}/respond:
+    patch:
+      operationId: respondToConnection
+      tags: [social]
+      summary: Accept or dismiss an incoming connection request
+      parameters:
+        - name: personId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConnectionUpdate" }
+      responses:
+        "200":
+          description: Updated connection request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Connection" }
   /clans:
     get:
       operationId: listClans
@@ -648,7 +669,7 @@ components:
       properties:
         id: { type: string }
         personId: { type: string }
-        status: { type: string }
+        status: { type: string, enum: [requested, connected, declined] }
       required: [id, personId, status]
     ConnectionInput:
       type: object
@@ -657,6 +678,11 @@ components:
         eventId: { type: ["string", "null"] }
         message: { type: string }
       required: [personId, message]
+    ConnectionUpdate:
+      type: object
+      properties:
+        action: { type: string, enum: [accept, ignore] }
+      required: [action]
     ClanInput:
       type: object
       properties:

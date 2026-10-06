@@ -1,0 +1,1 @@
+- [AMIGO product scope](amigo-product-scope.md) — social discovery for events, friends, communities, chat, and plans; not dating or dashboard software.

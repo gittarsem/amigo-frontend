@@ -179,6 +179,8 @@
 .tag { border: 1px solid #e5e0d7; color: #66615c; border-radius: 99px; padding: 6px 10px; font-size: 10px; background: transparent; }
 .person-actions { margin-top: 14px; }
 .person-actions .button { width: 100%; }
+.person-actions .request-actions { display: flex; gap: 8px; }
+.person-actions .request-actions .button { width: auto; flex: 1; }
 .clan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .clan-card { display: block; overflow: hidden; text-decoration: none; color: inherit; background: #f1eee7; border-radius: 15px; }
 .clan-card > img { width: 100%; height: 155px; object-fit: cover; background: #e6ddd0; }

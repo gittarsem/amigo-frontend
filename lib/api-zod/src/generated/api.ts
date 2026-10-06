@@ -173,6 +173,7 @@ export const GetPersonResponse = zod.object({
   "location": zod.string(),
   "peopleCount": zod.number().int(),
   "maxPeople": zod.number().int(),
+  "isJoined": zod.boolean(),
   "interests": zod.array(zod.string())
 })),
   "clans": zod.array(zod.object({
@@ -230,6 +231,7 @@ export const GetBuddiesResponse = zod.object({
   "location": zod.string(),
   "peopleCount": zod.number().int(),
   "maxPeople": zod.number().int(),
+  "isJoined": zod.boolean(),
   "interests": zod.array(zod.string())
 }))
 })
@@ -250,7 +252,25 @@ export const CreateConnectionBody = zod.object({
 export const CreateConnectionResponse = zod.object({
   "id": zod.string(),
   "personId": zod.string(),
-  "status": zod.string()
+  "status": zod.enum(['requested', 'connected', 'declined'])
+})
+
+
+/**
+ * @summary Accept or dismiss an incoming connection request
+ */
+export const RespondToConnectionParams = zod.object({
+  "personId": zod.coerce.string()
+})
+
+export const RespondToConnectionBody = zod.object({
+  "action": zod.enum(['accept', 'ignore'])
+})
+
+export const RespondToConnectionResponse = zod.object({
+  "id": zod.string(),
+  "personId": zod.string(),
+  "status": zod.enum(['requested', 'connected', 'declined'])
 })
 
 
@@ -372,6 +392,7 @@ export const ListPlansResponseItem = zod.object({
   "location": zod.string(),
   "peopleCount": zod.number().int(),
   "maxPeople": zod.number().int(),
+  "isJoined": zod.boolean(),
   "interests": zod.array(zod.string())
 })
 export const ListPlansResponse = zod.array(ListPlansResponseItem)
@@ -406,6 +427,7 @@ export const CreatePlanResponse = zod.object({
   "location": zod.string(),
   "peopleCount": zod.number().int(),
   "maxPeople": zod.number().int(),
+  "isJoined": zod.boolean(),
   "interests": zod.array(zod.string())
 })
 
@@ -550,6 +572,7 @@ export const GetProfileResponse = zod.object({
   "location": zod.string(),
   "peopleCount": zod.number().int(),
   "maxPeople": zod.number().int(),
+  "isJoined": zod.boolean(),
   "interests": zod.array(zod.string())
 })),
   "clans": zod.array(zod.object({
@@ -605,6 +628,7 @@ export const UpdateProfileResponse = zod.object({
   "location": zod.string(),
   "peopleCount": zod.number().int(),
   "maxPeople": zod.number().int(),
+  "isJoined": zod.boolean(),
   "interests": zod.array(zod.string())
 })),
   "clans": zod.array(zod.object({
